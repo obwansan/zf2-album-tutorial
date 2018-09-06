@@ -1,0 +1,50 @@
+<?php
+// With Zend Framework 2, in order to set variables in the view, we
+// return a ViewModel instance (see AlbumController->indexAction())
+// where the first parameter of the constructor is an array from the
+// action ('albums')containing data we need. These (i.e. the albums,
+// i.e. the table rows (id, title, artist) are then automatically passed
+// to the view script.
+
+ $title = 'My albums';
+ $this->headTitle($title);
+ ?>
+ <h1><?php echo $this->escapeHtml($title); ?></h1>
+ <p>
+     <!-- The url() view helper is provided by Zend Framework 2 and is used to create the
+     links we need. The first parameter to url() is the route name we wish to use for
+     construction of the URL, and the second parameter is an array of all the variables to
+     fit into the placeholders to use. In this case we use our ‘album’ route which is set
+     up to accept two placeholder variables: action and id. -->
+     <a href="<?php echo $this->url('album', array('action'=>'add'));?>">Add new album</a>
+ </p>
+
+ <table class="table">
+ <tr>
+     <th>Title</th>
+     <th>Artist</th>
+     <th>&nbsp;</th>
+ </tr>
+ <!-- We iterate over the $albums that we assigned from the controller action.
+ (The Zend Framework 2 view system automatically ensures that these variables are
+ extracted into the scope of the view script, so that we don’t have to worry about
+ prefixing them with $this-> as we used to have to do with Zend Framework 1).
+ 
+ We create a table to display each album’s title and artist, and provide links
+ to allow for editing and deleting the record. A standard foreach: loop is used to
+ iterate over the list of albums, and we use the alternate form using a colon and
+ endforeach; as it is easier to scan than to try and match up braces. Again, the
+ url() view helper is used to create the edit and delete links. -->
+ <?php foreach ($albums as $album) : ?>
+ <tr>
+     <td><?php echo $this->escapeHtml($album->title);?></td>
+     <td><?php echo $this->escapeHtml($album->artist);?></td>
+     <td>
+         <a href="<?php echo $this->url('album',
+             array('action'=>'edit', 'id' => $album->id));?>">Edit</a>
+         <a href="<?php echo $this->url('album',
+             array('action'=>'delete', 'id' => $album->id));?>">Delete</a>
+     </td>
+ </tr>
+<?php endforeach; ?>
+</table>
