@@ -72,10 +72,90 @@ namespace Album\Controller;
 
      public function editAction()
      {
+         // params is a controller plugin that provides a convenient way to
+         // retrieve parameters from the matched route. We use it to retrieve
+         // the id from the route we configured in the modules’ module.config.php.
+         // If the id is zero, then we redirect to the add action, otherwise,
+         // we continue by getting the album entity from the database.
+         $id = (int) $this->params()->fromRoute('id', 0);
+         if (!$id) {
+             return $this->redirect()->toRoute('album', array(
+                 'action' => 'add'
+             ));
+         }
+
+         // Get the Album with the specified id.  An exception is thrown
+         // if it cannot be found, in which case go to the index page.
+         try {
+             $album = $this->getAlbumTable()->getAlbum($id);
+         }
+         catch (\Exception $ex) {
+             return $this->redirect()->toRoute('album', array(
+                 'action' => 'index'
+             ));
+         }
+
+        // The form’s bind() method attaches the model ($album) to the form. This is used in two ways:
+        // When displaying the form, the initial values for each element are extracted from the model.
+        // After successful validation in isValid(), the data from the form is put back into the model.
+        $form  = new AlbumForm();
+        // bind() is in Zend\Form\Form. AlbumForm extends Zend\Form\Form.
+        $form->bind($album);
+        // get() is in Zend/Form/Fieldset. AlbumForm extends Zend\Form\Form,
+        // which extends Zend\Form\Fieldset.
+        // Get the submit button and set its value to 'Edit'
+        $form->get('submit')->setAttribute('value', 'Edit');
+
+        // getRequest() is in Zend\Mvc\Controller\AbstractController. AlbumController
+        // extends AbstractActionController, which extends AbstractController.
+        // Does it get THE actual HTTP request, or just a sample HTTP request?
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            // setInputFilter() is in Zend\Form\Form. AlbumForm extends Form.
+            $form->setInputFilter($album->getInputFilter());
+            $form->setData($request->getPost());
+
+            if ($form->isValid()) {
+                $this->getAlbumTable()->saveAlbum($album);
+
+                // Redirect to list of albums
+                return $this->redirect()->toRoute('album');
+            }
+        }
+
+        return array(
+            'id' => $id,
+            'form' => $form,
+        );
      }
 
      public function deleteAction()
      {
+       $id = (int) $this->params()->fromRoute('id', 0);
+         if (!$id) {
+             return $this->redirect()->toRoute('album');
+         }
+
+         $request = $this->getRequest();
+         if ($request->isPost()) {
+             // Get post data from the form.
+             // <input type="submit" name="del" value="Yes" />
+             $del = $request->getPost('del', 'No');
+
+             if ($del == 'Yes') {
+                 $id = (int) $request->getPost('id');
+                 $this->getAlbumTable()->deleteAlbum($id);
+             }
+
+             // Redirect to list of albums
+             return $this->redirect()->toRoute('album');
+         }
+         // If the request is not a POST, then we retrieve the correct database
+         // record and assign it to the view, along with the id.
+         return array(
+             'id'    => $id,
+             'album' => $this->getAlbumTable()->getAlbum($id)
+         );
      }
 
      public function getAlbumTable()

@@ -20,6 +20,11 @@ class Album implements InputFilterAwareInterface
         $this->title  = (!empty($data['title']))  ? $data['title'] : null;
     }
 
+    public function getArrayCopy()
+    {
+        return get_object_vars($this);
+    }
+
     // Have to have this method in the class as it's part of InputFilterAwareInterface,
     // but we don't need to use it. Could just as well leave it empty as throw an
     // exception.
